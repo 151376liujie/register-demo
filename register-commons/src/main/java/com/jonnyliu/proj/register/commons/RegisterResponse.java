@@ -1,4 +1,4 @@
-package com.jonnyliu.proj.register.server;
+package com.jonnyliu.proj.register.commons;
 
 /**
  * 注册响应

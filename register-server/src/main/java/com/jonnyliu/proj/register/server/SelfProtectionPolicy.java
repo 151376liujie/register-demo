@@ -1,11 +1,16 @@
 package com.jonnyliu.proj.register.server;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * 自我保护机制
  *
  * @author liujie
  */
 public class SelfProtectionPolicy {
+
+    private static final Logger logger = LoggerFactory.getLogger(SelfProtectionPolicy.class);
 
     private static final SelfProtectionPolicy instance = new SelfProtectionPolicy();
 
@@ -48,10 +53,17 @@ public class SelfProtectionPolicy {
      * @return
      */
     public boolean isSelfProtectionActivated() {
-        HeartbeatCounter heartbeatMeasuredRate = HeartbeatCounter.getInstance();
-        if (heartbeatMeasuredRate.getLastMinuteHeartbeatRate() < expectedHeartbeatThreshold * 0.85) {
-            return true;
-        }
-        return false;
+        HeartbeatCounter heartbeatCounter = HeartbeatCounter.getInstance();
+        logger.info("最近一分钟的心跳次数为: {}", heartbeatCounter.getLastMinuteHeartbeatRate());
+        logger.info("期望的心跳次数为: {}", expectedHeartbeatThreshold);
+        return heartbeatCounter.getLastMinuteHeartbeatRate() < expectedHeartbeatThreshold;
+    }
+
+    @Override
+    public String toString() {
+        return "SelfProtectionPolicy{" +
+                "expectedHeartbeatRate=" + expectedHeartbeatRate +
+                ", expectedHeartbeatThreshold=" + expectedHeartbeatThreshold +
+                '}';
     }
 }

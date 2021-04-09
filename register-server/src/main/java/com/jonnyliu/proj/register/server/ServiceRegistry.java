@@ -1,6 +1,11 @@
 package com.jonnyliu.proj.register.server;
 
+import com.jonnyliu.proj.register.commons.ChangedType;
+import com.jonnyliu.proj.register.commons.DeltaRegistry;
+import com.jonnyliu.proj.register.commons.RecentlyChangedServiceInstance;
+import com.jonnyliu.proj.register.commons.ServiceInstance;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import org.slf4j.Logger;
@@ -15,14 +20,49 @@ public class ServiceRegistry {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ServiceRegistry.class);
 
+    public static final Long RECENTLY_CHANGED_ITEM_CHECK_INTERVAL = 3000L;
+    public static final Long RECENTLY_CHANGED_ITEM_EXPIRED = 3 * 60 * 1000L;
+
+
+    /**
+     * 核心的内存数据结构：注册表
+     * <p>
+     * Map：key是服务名称，value是这个服务的所有的服务实例
+     * Map<String, ServiceInstance>：key是服务实例id，value是服务实例的信息
+     */
     private static final Map<String, Map<String, ServiceInstance>> REGISTER_MAP = new ConcurrentHashMap<>();
+
+    /**
+     * 最近变更的服务实例的队列
+     */
+    private LinkedList<RecentlyChangedServiceInstance> recentlyChangedQueue =
+            new LinkedList<>();
+
+    /**
+     * 注册表是个单例
+     */
     private static final ServiceRegistry INSTANCE = new ServiceRegistry();
 
     private ServiceRegistry() {
+        //启动后台线程监控最近变更的队列
+        RecentlyChangedQueueMonitor recentlyChangedQueueMonitor = new RecentlyChangedQueueMonitor();
+        recentlyChangedQueueMonitor.setDaemon(true);
+        recentlyChangedQueueMonitor.start();
     }
 
     public static ServiceRegistry getInstance() {
         return INSTANCE;
+    }
+
+    /**
+     * 服务实例个数
+     */
+    private Long getServiceInstanceTotalCount() {
+        long total = 0L;
+        for (Map<String, ServiceInstance> map : REGISTER_MAP.values()) {
+            total += map.size();
+        }
+        return total;
     }
 
     /**
@@ -40,12 +80,16 @@ public class ServiceRegistry {
         }
         serviceInstanceMap.put(serviceInstance.getInstanceId(), serviceInstance);
         REGISTER_MAP.put(serviceInstance.getServiceName(), serviceInstanceMap);
+
+        //将新注册的服务实例加入最近变更的服务实例队列中区
+        addRecentlyChangedQueue(serviceInstance, ChangedType.REGISTER);
     }
 
     /**
      * 删除指定服务名称的某个服务实例
      *
-     * @param instance 服务实例
+     * @param serviceName 服务名称
+     * @param instanceId  服务实例id
      */
     public synchronized void remove(String serviceName, String instanceId) {
         LOGGER.info("服务名称:[{}],服务实例ID: [{}]从注册中心被摘除", serviceName, instanceId);
@@ -53,16 +97,41 @@ public class ServiceRegistry {
             return;
         }
         Map<String, ServiceInstance> serviceInstances = REGISTER_MAP.get(serviceName);
-        serviceInstances.remove(instanceId);
+
+        ServiceInstance serviceInstance = serviceInstances.remove(instanceId);
+        //添加服务实例到最近变更的服务实例队列中
+        addRecentlyChangedQueue(serviceInstance, ChangedType.REMOVE);
     }
 
     /**
-     * 获取注册表
+     * 将最近变更的服务实例加入最近变更服务实例队列中去
+     *
+     * @param serviceInstance 服务实例
+     * @param changedType     变更类型
+     */
+    private void addRecentlyChangedQueue(ServiceInstance serviceInstance, String changedType) {
+        RecentlyChangedServiceInstance changedServiceInstance = new RecentlyChangedServiceInstance(serviceInstance,
+                changedType);
+        recentlyChangedQueue.offer(changedServiceInstance);
+    }
+
+    /**
+     * 获取全量注册表
      *
      * @return 获取注册表
      */
-    public synchronized Map<String, Map<String, ServiceInstance>> getRegistry() {
+    public synchronized Map<String, Map<String, ServiceInstance>> getFullRegistry() {
         return REGISTER_MAP;
+    }
+
+    /**
+     * 获取增量注册表
+     *
+     * @return
+     */
+    public synchronized DeltaRegistry getDeltaRegistry() {
+        Long totalCount = getServiceInstanceTotalCount();
+        return new DeltaRegistry(recentlyChangedQueue, totalCount);
     }
 
     /**
@@ -76,4 +145,34 @@ public class ServiceRegistry {
         Map<String, ServiceInstance> serviceInstances = REGISTER_MAP.get(serviceName);
         return serviceInstances.get(serviceInstanceId);
     }
+
+    /**
+     * 最近变更的服务实例队列监控线程,将队列中服务实例的最近变更时间大于3分钟的实例移除
+     */
+    class RecentlyChangedQueueMonitor extends Thread {
+
+        @Override
+        public void run() {
+            while (true) {
+                try {
+                    synchronized (INSTANCE) {
+                        RecentlyChangedServiceInstance recentlyChangedItem = null;
+                        Long currentTimestamp = System.currentTimeMillis();
+                        while ((recentlyChangedItem = recentlyChangedQueue.peek()) != null) {
+                            // 判断如果一个服务实例变更信息已经在队列里存在超过3分钟了
+                            // 就从队列中移除
+                            if (currentTimestamp - recentlyChangedItem.getChangedTimestamp()
+                                    > RECENTLY_CHANGED_ITEM_EXPIRED) {
+                                recentlyChangedQueue.pop();
+                            }
+                        }
+                    }
+                    Thread.sleep(RECENTLY_CHANGED_ITEM_CHECK_INTERVAL);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+
 }

@@ -1,6 +1,7 @@
 package com.jonnyliu.proj.register.server;
 
 
+import com.jonnyliu.proj.register.commons.ServiceInstance;
 import java.util.Map;
 import java.util.Map.Entry;
 import org.slf4j.Logger;
@@ -48,7 +49,7 @@ public class ServiceAliveMonitor {
                         Thread.sleep(CHECK_ALIVE_INTERVAL);
                         continue;
                     }
-                    for (Entry<String, Map<String, ServiceInstance>> entry : registry.getRegistry().entrySet()) {
+                    for (Entry<String, Map<String, ServiceInstance>> entry : registry.getFullRegistry().entrySet()) {
                         LOGGER.info("==============>>>>>> {}", entry.getValue().size());
                         Map<String, ServiceInstance> instanceMap = entry.getValue();
                         for (Entry<String, ServiceInstance> instanceEntry : instanceMap.entrySet()) {

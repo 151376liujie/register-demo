@@ -1,4 +1,4 @@
-package com.jonnyliu.proj.register.client;
+package com.jonnyliu.proj.register.commons;
 
 /**
  * 注册请求

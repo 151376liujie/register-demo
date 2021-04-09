@@ -1,4 +1,4 @@
-package com.jonnyliu.proj.register.server;
+package com.jonnyliu.proj.register.commons;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

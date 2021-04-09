@@ -1,5 +1,12 @@
 package com.jonnyliu.proj.register.server;
 
+import com.jonnyliu.proj.register.commons.DeltaRegistry;
+import com.jonnyliu.proj.register.commons.HeartbeatRequest;
+import com.jonnyliu.proj.register.commons.HeartbeatResponse;
+import com.jonnyliu.proj.register.commons.RegisterRequest;
+import com.jonnyliu.proj.register.commons.RegisterResponse;
+import com.jonnyliu.proj.register.commons.ServiceInstance;
+import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,6 +44,7 @@ public class RegisterServerController {
 			//自我保护阈值的修改
 			synchronized (SelfProtectionPolicy.class) {
 				SelfProtectionPolicy selfProtectionPolicy = SelfProtectionPolicy.getInstance();
+				LOGGER.info("当前实例最近一分钟心跳次数为:{}", selfProtectionPolicy);
 				selfProtectionPolicy.setExpectedHeartbeatRate(selfProtectionPolicy.getExpectedHeartbeatRate() + 2);
 				selfProtectionPolicy
 						.setExpectedHeartbeatThreshold((long) (selfProtectionPolicy.getExpectedHeartbeatRate() * 0.85));
@@ -75,6 +83,24 @@ public class RegisterServerController {
 		}
 
 		return heartbeatResponse;
+	}
+
+	/**
+	 * 拉取全量注册表
+	 *
+	 * @return
+	 */
+	public Map<String, Map<String, ServiceInstance>> fetchFullRegistry() {
+		return registry.getFullRegistry();
+	}
+
+	/**
+	 * 拉取增量注册表
+	 *
+	 * @return
+	 */
+	public DeltaRegistry fetchDeltaRegistry() {
+		return registry.getDeltaRegistry();
 	}
 
 	/**

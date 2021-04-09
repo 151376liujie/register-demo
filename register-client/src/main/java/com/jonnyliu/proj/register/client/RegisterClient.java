@@ -1,5 +1,9 @@
 package com.jonnyliu.proj.register.client;
 
+import com.jonnyliu.proj.register.commons.HeartbeatRequest;
+import com.jonnyliu.proj.register.commons.HeartbeatResponse;
+import com.jonnyliu.proj.register.commons.RegisterRequest;
+import com.jonnyliu.proj.register.commons.RegisterResponse;
 import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

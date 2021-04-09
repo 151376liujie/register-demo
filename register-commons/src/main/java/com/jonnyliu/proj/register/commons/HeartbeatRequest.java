@@ -1,4 +1,4 @@
-package com.jonnyliu.proj.register.client;
+package com.jonnyliu.proj.register.commons;
 
 /**
  * 心跳请求

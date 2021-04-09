@@ -1,5 +1,7 @@
 package com.jonnyliu.proj.register.server;
 
+import com.jonnyliu.proj.register.commons.HeartbeatRequest;
+import com.jonnyliu.proj.register.commons.RegisterRequest;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -28,7 +30,7 @@ public class RegistryServer {
             list.add(registerRequest);
         }
 
-        for (int i = 0; i < 5; i++) {
+        for (int i = 0; i < 9; i++) {
             RegisterRequest registerRequest = list.get(new Random().nextInt(list.size()));
             // 模拟进行一次心跳，完成续约
             HeartbeatRequest heartbeatRequest = new HeartbeatRequest();
