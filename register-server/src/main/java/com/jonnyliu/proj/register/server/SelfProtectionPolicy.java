@@ -40,14 +40,11 @@ public class SelfProtectionPolicy {
 
     public void setExpectedHeartbeatRate(long expectedHeartbeatRate) {
         this.expectedHeartbeatRate = expectedHeartbeatRate;
+        this.expectedHeartbeatThreshold = (long) (this.expectedHeartbeatRate * THRESHOLD_SELF_PROTECTION);
     }
 
     public long getExpectedHeartbeatThreshold() {
-        return expectedHeartbeatThreshold;
-    }
-
-    public void setExpectedHeartbeatThreshold(long expectedHeartbeatThreshold) {
-        this.expectedHeartbeatThreshold = expectedHeartbeatThreshold;
+        return this.expectedHeartbeatThreshold;
     }
 
     /**
@@ -57,7 +54,7 @@ public class SelfProtectionPolicy {
      */
     public boolean isSelfProtectionActivated() {
         HeartbeatCounter heartbeatCounter = HeartbeatCounter.getInstance();
-        log.info("最近一分钟的心跳次数为: {}, 期望的心跳次数为: {}", heartbeatCounter.getLastMinuteHeartbeatRate(),
+        log.info("最近一分钟的心跳次数为: {}, 期望的最小心跳次数为: {}", heartbeatCounter.getLastMinuteHeartbeatRate(),
                 expectedHeartbeatThreshold);
         return heartbeatCounter.getLastMinuteHeartbeatRate() < expectedHeartbeatThreshold;
     }

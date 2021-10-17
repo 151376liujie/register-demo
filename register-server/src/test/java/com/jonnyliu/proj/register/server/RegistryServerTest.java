@@ -5,19 +5,18 @@ import com.jonnyliu.proj.register.commons.RegisterRequest;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import org.junit.Test;
 
-/**
- * @author liujie
- */
-public class RegistryServer {
+public class RegistryServerTest {
 
-    public static void main(String[] args) throws InterruptedException {
+    @Test
+    public void test() throws InterruptedException {
         RegisterServerController registerServerController = new RegisterServerController();
 
         List<RegisterRequest> list = new ArrayList<>();
 
         //模拟注册服务到注册中心
-        for (int i = 0; i < 2; i++) {
+        for (int i = 0; i < 1; i++) {
             RegisterRequest registerRequest = new RegisterRequest();
             registerRequest.setHostname("inventory-service-" + i);
             registerRequest.setIp("192.168.16." + i);

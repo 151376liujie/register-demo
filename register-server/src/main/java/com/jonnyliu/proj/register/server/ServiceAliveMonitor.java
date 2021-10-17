@@ -61,8 +61,6 @@ public class ServiceAliveMonitor {
                                 synchronized (SelfProtectionPolicy.class) {
                                     selfProtectionPolicy.setExpectedHeartbeatRate(
                                             selfProtectionPolicy.getExpectedHeartbeatRate() - 2);
-                                    selfProtectionPolicy.setExpectedHeartbeatThreshold(
-                                            (long) (selfProtectionPolicy.getExpectedHeartbeatRate() * 0.85));
                                 }
                             }
                         }

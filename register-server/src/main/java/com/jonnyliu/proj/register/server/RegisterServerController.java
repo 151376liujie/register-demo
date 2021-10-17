@@ -44,10 +44,8 @@ public class RegisterServerController {
 			//自我保护阈值的修改
 			synchronized (SelfProtectionPolicy.class) {
 				SelfProtectionPolicy selfProtectionPolicy = SelfProtectionPolicy.getInstance();
-				log.info("当前实例最近一分钟心跳次数为:{}", selfProtectionPolicy);
 				selfProtectionPolicy.setExpectedHeartbeatRate(selfProtectionPolicy.getExpectedHeartbeatRate() + 2);
-				selfProtectionPolicy
-						.setExpectedHeartbeatThreshold((long) (selfProtectionPolicy.getExpectedHeartbeatRate() * 0.85));
+				log.info("当前实例最近一分钟心跳次数为:{}", selfProtectionPolicy);
 			}
 			registerResponse.setStatus(RegisterResponse.SUCCESS);
 		} catch (Exception e) {
@@ -75,6 +73,7 @@ public class RegisterServerController {
 			//记录一下每分钟的心跳次数
 			HeartbeatCounter heartbeatMeasuredRate = HeartbeatCounter.getInstance();
 			heartbeatMeasuredRate.increment();
+			log.info("当前服务实例每分钟心跳次数：{}", heartbeatMeasuredRate.getLastMinuteHeartbeatRate());
 
 			heartbeatResponse.setStatus(HeartbeatResponse.SUCCESS);
 		} catch (Exception e) {
@@ -114,9 +113,7 @@ public class RegisterServerController {
 		synchronized (SelfProtectionPolicy.class) {
 			SelfProtectionPolicy selfProtectionPolicy = SelfProtectionPolicy.getInstance();
 			selfProtectionPolicy.setExpectedHeartbeatRate(selfProtectionPolicy.getExpectedHeartbeatRate() - 2);
-			selfProtectionPolicy
-					.setExpectedHeartbeatThreshold((long) (selfProtectionPolicy.getExpectedHeartbeatRate()
-							* SelfProtectionPolicy.THRESHOLD_SELF_PROTECTION));
+			log.info("当前实例最近一分钟心跳次数为:{}", selfProtectionPolicy);
 		}
 	}
 }

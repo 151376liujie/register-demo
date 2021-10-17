@@ -1,6 +1,8 @@
 package com.jonnyliu.proj.register.server;
 
 import java.util.concurrent.atomic.LongAdder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * 心跳测量计数器
@@ -9,7 +11,8 @@ import java.util.concurrent.atomic.LongAdder;
  */
 public class HeartbeatCounter {
 
-    public static final int ONE_MINUTE = 60 * 1000;
+    private static final Logger log = LoggerFactory.getLogger(HeartbeatCounter.class);
+    private static final int ONE_MINUTE = 60 * 1000;
 
     private static final HeartbeatCounter INSTANCE = new HeartbeatCounter();
 
@@ -26,6 +29,11 @@ public class HeartbeatCounter {
     private HeartbeatCounter() {
         this.lastMinuteHeartbeatRate = new LongAdder();
         this.lastMinuteTimestamp = System.currentTimeMillis();
+        //开启一个后台线程
+        Daemon daemon = new Daemon();
+        daemon.setDaemon(true);
+        daemon.setName("HEARTBEAT-COUNTER-MONITOR-THREAD");
+        daemon.start();
     }
 
     public static HeartbeatCounter getInstance() {
@@ -35,13 +43,12 @@ public class HeartbeatCounter {
     /**
      * 增加最近一分钟的心跳次数
      */
-    public synchronized void increment() {
-        long currentTimeMillis = System.currentTimeMillis();
-        if (currentTimeMillis - lastMinuteTimestamp < ONE_MINUTE) {
-            this.lastMinuteHeartbeatRate.increment();
-        } else {
-            this.lastMinuteHeartbeatRate = new LongAdder();
-            this.lastMinuteTimestamp = System.currentTimeMillis();
+    public void increment() {
+        synchronized (HeartbeatCounter.class) {
+            long currentTimeMillis = System.currentTimeMillis();
+            if (currentTimeMillis - lastMinuteTimestamp < ONE_MINUTE) {
+                this.lastMinuteHeartbeatRate.increment();
+            }
         }
     }
 
@@ -50,7 +57,31 @@ public class HeartbeatCounter {
      *
      * @return 最近一分钟的心跳次数
      */
-    public synchronized long getLastMinuteHeartbeatRate() {
-        return this.lastMinuteHeartbeatRate.longValue();
+    public long getLastMinuteHeartbeatRate() {
+        synchronized (HeartbeatCounter.class) {
+            return this.lastMinuteHeartbeatRate.longValue();
+        }
+    }
+
+    private class Daemon extends Thread {
+
+        @Override
+        public void run() {
+            while (true) {
+                synchronized (HeartbeatCounter.class) {
+                    long currentTimeMillis = System.currentTimeMillis();
+                    if (currentTimeMillis - lastMinuteTimestamp > ONE_MINUTE) {
+                        log.info("超过一分钟，清空心跳次数");
+                        lastMinuteHeartbeatRate = new LongAdder();
+                        lastMinuteTimestamp = System.currentTimeMillis();
+                    }
+                }
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    log.error("error.", e);
+                }
+            }
+        }
     }
 }
