@@ -19,7 +19,7 @@ import org.slf4j.LoggerFactory;
  */
 public class RegisterServerController {
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(RegisterServerController.class);
+	private static final Logger log = LoggerFactory.getLogger(RegisterServerController.class);
 
 	private final ServiceRegistry registry = ServiceRegistry.getInstance();
 
@@ -44,7 +44,7 @@ public class RegisterServerController {
 			//自我保护阈值的修改
 			synchronized (SelfProtectionPolicy.class) {
 				SelfProtectionPolicy selfProtectionPolicy = SelfProtectionPolicy.getInstance();
-				LOGGER.info("当前实例最近一分钟心跳次数为:{}", selfProtectionPolicy);
+				log.info("当前实例最近一分钟心跳次数为:{}", selfProtectionPolicy);
 				selfProtectionPolicy.setExpectedHeartbeatRate(selfProtectionPolicy.getExpectedHeartbeatRate() + 2);
 				selfProtectionPolicy
 						.setExpectedHeartbeatThreshold((long) (selfProtectionPolicy.getExpectedHeartbeatRate() * 0.85));
@@ -78,17 +78,16 @@ public class RegisterServerController {
 
 			heartbeatResponse.setStatus(HeartbeatResponse.SUCCESS);
 		} catch (Exception e) {
-			e.printStackTrace();
+			log.error("error.", e);
 			heartbeatResponse.setStatus(HeartbeatResponse.FAILURE);
 		}
-
 		return heartbeatResponse;
 	}
 
 	/**
 	 * 拉取全量注册表
 	 *
-	 * @return
+	 * @return 全量注册表
 	 */
 	public Map<String, Map<String, ServiceInstance>> fetchFullRegistry() {
 		return registry.getFullRegistry();
@@ -97,7 +96,7 @@ public class RegisterServerController {
 	/**
 	 * 拉取增量注册表
 	 *
-	 * @return
+	 * @return 增量注册表
 	 */
 	public DeltaRegistry fetchDeltaRegistry() {
 		return registry.getDeltaRegistry();
@@ -116,8 +115,8 @@ public class RegisterServerController {
 			SelfProtectionPolicy selfProtectionPolicy = SelfProtectionPolicy.getInstance();
 			selfProtectionPolicy.setExpectedHeartbeatRate(selfProtectionPolicy.getExpectedHeartbeatRate() - 2);
 			selfProtectionPolicy
-					.setExpectedHeartbeatThreshold((long) (selfProtectionPolicy.getExpectedHeartbeatRate() * 0.85));
+					.setExpectedHeartbeatThreshold((long) (selfProtectionPolicy.getExpectedHeartbeatRate()
+							* SelfProtectionPolicy.THRESHOLD_SELF_PROTECTION));
 		}
 	}
-
 }

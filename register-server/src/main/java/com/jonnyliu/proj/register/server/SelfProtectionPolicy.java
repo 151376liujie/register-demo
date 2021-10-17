@@ -10,9 +10,12 @@ import org.slf4j.LoggerFactory;
  */
 public class SelfProtectionPolicy {
 
-    private static final Logger logger = LoggerFactory.getLogger(SelfProtectionPolicy.class);
-
-    private static final SelfProtectionPolicy instance = new SelfProtectionPolicy();
+    /**
+     * 自我保护机制的阈值，当 实际的心跳次数  < 每分钟期望的心跳次数 * 0.85，则注册中心会自动进入自我保护机制
+     */
+    public static final double THRESHOLD_SELF_PROTECTION = 0.85F;
+    private static final Logger log = LoggerFactory.getLogger(SelfProtectionPolicy.class);
+    private static final SelfProtectionPolicy INSTANCE = new SelfProtectionPolicy();
 
     private SelfProtectionPolicy() {
     }
@@ -28,7 +31,7 @@ public class SelfProtectionPolicy {
     private long expectedHeartbeatThreshold = 0L;
 
     public static SelfProtectionPolicy getInstance() {
-        return instance;
+        return INSTANCE;
     }
 
     public long getExpectedHeartbeatRate() {
@@ -54,8 +57,8 @@ public class SelfProtectionPolicy {
      */
     public boolean isSelfProtectionActivated() {
         HeartbeatCounter heartbeatCounter = HeartbeatCounter.getInstance();
-        logger.info("最近一分钟的心跳次数为: {}", heartbeatCounter.getLastMinuteHeartbeatRate());
-        logger.info("期望的心跳次数为: {}", expectedHeartbeatThreshold);
+        log.info("最近一分钟的心跳次数为: {}, 期望的心跳次数为: {}", heartbeatCounter.getLastMinuteHeartbeatRate(),
+                expectedHeartbeatThreshold);
         return heartbeatCounter.getLastMinuteHeartbeatRate() < expectedHeartbeatThreshold;
     }
 

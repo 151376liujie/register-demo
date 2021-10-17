@@ -1,53 +1,42 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns="http://maven.apache.org/POM/4.0.0"
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-  <modelVersion>4.0.0</modelVersion>
-
-  <parent>
-    <groupId>com.jonnyliu.proj.register</groupId>
-    <artifactId>register-demo</artifactId>
-    <version>1.0-SNAPSHOT</version>
-  </parent>
-
   <artifactId>register-server</artifactId>
-  <version>1.0-SNAPSHOT</version>
-
-  <name>register-server</name>
-  <url>http://www.example.com</url>
-
-
-  <dependencies>
-    <!-- https://mvnrepository.com/artifact/org.slf4j/slf4j-api -->
-    <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-api</artifactId>
-    </dependency>
-    <!-- https://mvnrepository.com/artifact/ch.qos.logback/logback-classic -->
-    <dependency>
-      <groupId>ch.qos.logback</groupId>
-      <artifactId>logback-classic</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.bouncycastle</groupId>
-      <artifactId>bcpg-jdk15on</artifactId>
-      <version>1.56</version>
-    </dependency>
-    <dependency>
-      <groupId>org.bouncycastle</groupId>
-      <artifactId>bcpkix-jdk15on</artifactId>
-      <version>1.60</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>com.jonnyliu.proj.register</groupId>
-      <artifactId>register-commons</artifactId>
-      <version>1.0-SNAPSHOT</version>
-    </dependency>
-  </dependencies>
 
   <build>
 
   </build>
+
+  <dependencies>
+    <!-- https://mvnrepository.com/artifact/org.slf4j/slf4j-api -->
+    <dependency>
+      <artifactId>slf4j-api</artifactId>
+      <groupId>org.slf4j</groupId>
+    </dependency>
+    <!-- https://mvnrepository.com/artifact/ch.qos.logback/logback-classic -->
+    <dependency>
+      <artifactId>logback-classic</artifactId>
+      <groupId>ch.qos.logback</groupId>
+    </dependency>
+    <dependency>
+      <artifactId>register-commons</artifactId>
+      <groupId>com.jonnyliu.proj.register</groupId>
+      <version>1.0-SNAPSHOT</version>
+    </dependency>
+  </dependencies>
+  <modelVersion>4.0.0</modelVersion>
+
+  <name>register-server</name>
+  <parent>
+    <artifactId>register-demo</artifactId>
+    <groupId>com.jonnyliu.proj.register</groupId>
+    <version>1.0-SNAPSHOT</version>
+  </parent>
+
+
+  <url>http://www.example.com</url>
+
+  <version>1.0-SNAPSHOT</version>
 </project>

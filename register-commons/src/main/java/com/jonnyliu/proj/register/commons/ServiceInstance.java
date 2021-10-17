@@ -1,11 +1,17 @@
 package com.jonnyliu.proj.register.commons;
 
+import java.util.Date;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * 代表一个服务实例
+ *
+ * @author liujie
+ */
 public class ServiceInstance {
 
-    public static final Logger LOGGER = LoggerFactory.getLogger(ServiceInstance.class);
+    public static final Logger log = LoggerFactory.getLogger(ServiceInstance.class);
 
     /**
      * 服务实例存活的阈值
@@ -20,13 +26,23 @@ public class ServiceInstance {
     private Lease lease;
 
     public ServiceInstance() {
-        this.lease = new Lease();
+    }
+
+    public Lease getLease() {
+        return lease;
+    }
+
+    public void setLease(Lease lease) {
+        this.lease = lease;
     }
 
     /**
      * 服务续约
      */
     public void renew() {
+        if (this.lease == null) {
+            this.lease = new Lease();
+        }
         this.lease.renew();
     }
 
@@ -36,6 +52,9 @@ public class ServiceInstance {
      * @return 是否存活
      */
     public boolean isAlive() {
+        if (this.lease == null) {
+            this.lease = new Lease();
+        }
         return this.lease.isAlive();
     }
 
@@ -44,6 +63,9 @@ public class ServiceInstance {
      */
     private class Lease {
 
+        /**
+         * 最后一次的心跳时间戳
+         */
         private volatile Long lastHeartBeatTimestamp;
 
         public Long getLastHeartBeatTimestamp() {
@@ -51,7 +73,6 @@ public class ServiceInstance {
         }
 
         public Lease() {
-            this.lastHeartBeatTimestamp = System.currentTimeMillis();
         }
 
         /**
@@ -59,7 +80,7 @@ public class ServiceInstance {
          */
         public void renew() {
             this.lastHeartBeatTimestamp = System.currentTimeMillis();
-            LOGGER.info("服务实例【" + instanceId + "】，进行续约：" + lastHeartBeatTimestamp);
+            log.info("服务实例【" + instanceId + "】，进行续约：" + new Date(lastHeartBeatTimestamp));
         }
 
         /**
@@ -69,10 +90,10 @@ public class ServiceInstance {
          */
         public boolean isAlive() {
             if (System.currentTimeMillis() - this.getLastHeartBeatTimestamp() > ALIVE_TIME_THRESHOLD) {
-                LOGGER.info("服务实例【" + instanceId + "】，不再存活");
+                log.info("服务实例【{}】，不再存活", instanceId);
                 return false;
             }
-            LOGGER.info("服务实例【" + instanceId + "】，保持存活");
+            log.info("服务实例【{}】，保持存活", instanceId);
             return true;
         }
 

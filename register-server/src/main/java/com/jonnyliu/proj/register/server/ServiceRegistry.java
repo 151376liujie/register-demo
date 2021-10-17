@@ -4,7 +4,6 @@ import com.jonnyliu.proj.register.commons.ChangedType;
 import com.jonnyliu.proj.register.commons.DeltaRegistry;
 import com.jonnyliu.proj.register.commons.RecentlyChangedServiceInstance;
 import com.jonnyliu.proj.register.commons.ServiceInstance;
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -18,7 +17,7 @@ import org.slf4j.LoggerFactory;
  */
 public class ServiceRegistry {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(ServiceRegistry.class);
+    private static final Logger log = LoggerFactory.getLogger(ServiceRegistry.class);
 
     public static final Long RECENTLY_CHANGED_ITEM_CHECK_INTERVAL = 3000L;
     public static final Long RECENTLY_CHANGED_ITEM_EXPIRED = 3 * 60 * 1000L;
@@ -47,7 +46,7 @@ public class ServiceRegistry {
         //启动后台线程监控最近变更的队列
         RecentlyChangedQueueMonitor recentlyChangedQueueMonitor = new RecentlyChangedQueueMonitor();
         recentlyChangedQueueMonitor.setDaemon(true);
-        recentlyChangedQueueMonitor.start();
+//        recentlyChangedQueueMonitor.start();
     }
 
     public static ServiceRegistry getInstance() {
@@ -71,12 +70,12 @@ public class ServiceRegistry {
      * @param serviceInstance 服务实例
      */
     public synchronized void register(ServiceInstance serviceInstance) {
-        LOGGER.info("注册服务,服务名称:[{}], 服务实例ID: [{}] ", serviceInstance.getServiceName(), serviceInstance.getInstanceId());
+        log.info("注册服务,服务名称:[{}], 服务实例ID: [{}] ", serviceInstance.getServiceName(), serviceInstance.getInstanceId());
         Map<String, ServiceInstance> serviceInstanceMap;
-        if (REGISTER_MAP.containsKey(serviceInstance.getServiceName())) {
-            serviceInstanceMap = REGISTER_MAP.get(serviceInstance.getServiceName());
+        if (!REGISTER_MAP.containsKey(serviceInstance.getServiceName())) {
+            serviceInstanceMap = new ConcurrentHashMap<>();
         } else {
-            serviceInstanceMap = new HashMap<>();
+            serviceInstanceMap = REGISTER_MAP.get(serviceInstance.getServiceName());
         }
         serviceInstanceMap.put(serviceInstance.getInstanceId(), serviceInstance);
         REGISTER_MAP.put(serviceInstance.getServiceName(), serviceInstanceMap);
@@ -92,7 +91,7 @@ public class ServiceRegistry {
      * @param instanceId  服务实例id
      */
     public synchronized void remove(String serviceName, String instanceId) {
-        LOGGER.info("服务名称:[{}],服务实例ID: [{}]从注册中心被摘除", serviceName, instanceId);
+        log.info("服务名称:[{}],服务实例ID: [{}]从注册中心被摘除", serviceName, instanceId);
         if (!REGISTER_MAP.containsKey(serviceName)) {
             return;
         }
@@ -169,7 +168,7 @@ public class ServiceRegistry {
                     }
                     Thread.sleep(RECENTLY_CHANGED_ITEM_CHECK_INTERVAL);
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    log.error("error.", e);
                 }
             }
         }

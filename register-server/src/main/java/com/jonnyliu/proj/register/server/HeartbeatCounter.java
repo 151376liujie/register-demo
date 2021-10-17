@@ -11,35 +11,37 @@ public class HeartbeatCounter {
 
     public static final int ONE_MINUTE = 60 * 1000;
 
-    private static HeartbeatCounter instance = new HeartbeatCounter();
+    private static final HeartbeatCounter INSTANCE = new HeartbeatCounter();
 
     /**
      * 最近一分钟的时间戳
      */
-    private long lastMinuteTimestamp = System.currentTimeMillis();
+    private long lastMinuteTimestamp;
 
     /**
      * 最近一分钟的心跳次数
      */
-    private LongAdder lastMinuteHeartbeatRate = new LongAdder();
-
-    public static HeartbeatCounter getInstance() {
-        return instance;
-    }
+    private LongAdder lastMinuteHeartbeatRate;
 
     private HeartbeatCounter() {
+        this.lastMinuteHeartbeatRate = new LongAdder();
+        this.lastMinuteTimestamp = System.currentTimeMillis();
+    }
+
+    public static HeartbeatCounter getInstance() {
+        return INSTANCE;
     }
 
     /**
      * 增加最近一分钟的心跳次数
      */
-    public void increment() {
+    public synchronized void increment() {
         long currentTimeMillis = System.currentTimeMillis();
         if (currentTimeMillis - lastMinuteTimestamp < ONE_MINUTE) {
-            lastMinuteHeartbeatRate.increment();
+            this.lastMinuteHeartbeatRate.increment();
         } else {
-            lastMinuteHeartbeatRate = new LongAdder();
-            lastMinuteTimestamp = System.currentTimeMillis();
+            this.lastMinuteHeartbeatRate = new LongAdder();
+            this.lastMinuteTimestamp = System.currentTimeMillis();
         }
     }
 
@@ -48,7 +50,7 @@ public class HeartbeatCounter {
      *
      * @return 最近一分钟的心跳次数
      */
-    public long getLastMinuteHeartbeatRate() {
-        return lastMinuteHeartbeatRate.longValue();
+    public synchronized long getLastMinuteHeartbeatRate() {
+        return this.lastMinuteHeartbeatRate.longValue();
     }
 }

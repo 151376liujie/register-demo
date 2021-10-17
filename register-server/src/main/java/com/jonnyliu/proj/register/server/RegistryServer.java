@@ -4,7 +4,6 @@ import com.jonnyliu.proj.register.commons.HeartbeatRequest;
 import com.jonnyliu.proj.register.commons.RegisterRequest;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
 import java.util.UUID;
 
 /**
@@ -18,7 +17,7 @@ public class RegistryServer {
         List<RegisterRequest> list = new ArrayList<>();
 
         //模拟注册服务到注册中心
-        for (int i = 0; i < 10; i++) {
+        for (int i = 0; i < 2; i++) {
             RegisterRequest registerRequest = new RegisterRequest();
             registerRequest.setHostname("inventory-service-" + i);
             registerRequest.setIp("192.168.16." + i);
@@ -30,8 +29,8 @@ public class RegistryServer {
             list.add(registerRequest);
         }
 
-        for (int i = 0; i < 9; i++) {
-            RegisterRequest registerRequest = list.get(new Random().nextInt(list.size()));
+        for (int i = 0; i < 1; i++) {
+            RegisterRequest registerRequest = list.get(i);
             // 模拟进行一次心跳，完成续约
             HeartbeatRequest heartbeatRequest = new HeartbeatRequest();
             heartbeatRequest.setServiceInstanceId(registerRequest.getServiceInstanceId());
@@ -42,7 +41,8 @@ public class RegistryServer {
         // 开启一个后台线程，检测微服务的存活状态
         ServiceAliveMonitor serviceAliveMonitor = new ServiceAliveMonitor();
         serviceAliveMonitor.start();
-        Thread.sleep(1500 * 1000);
+        while (true) {
+            Thread.sleep(30 * 1000);
+        }
     }
-
 }

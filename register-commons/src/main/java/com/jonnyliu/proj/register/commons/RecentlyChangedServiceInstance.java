@@ -1,5 +1,7 @@
 package com.jonnyliu.proj.register.commons;
 
+import java.util.StringJoiner;
+
 /**
  * 最近变更的服务实例
  *
@@ -38,5 +40,14 @@ public class RecentlyChangedServiceInstance {
 
     public String getChangedType() {
         return changedType;
+    }
+
+    @Override
+    public String toString() {
+        return new StringJoiner(", ", RecentlyChangedServiceInstance.class.getSimpleName() + "[", "]")
+                .add("serviceInstance=" + serviceInstance)
+                .add("changedTimestamp=" + changedTimestamp)
+                .add("changedType='" + changedType + "'")
+                .toString();
     }
 }

@@ -14,7 +14,7 @@ import org.slf4j.LoggerFactory;
  */
 public class ServiceAliveMonitor {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(ServiceAliveMonitor.class);
+    private static final Logger log = LoggerFactory.getLogger(ServiceAliveMonitor.class);
 
     private static final long CHECK_ALIVE_INTERVAL = 60 * 1000;
 
@@ -45,12 +45,13 @@ public class ServiceAliveMonitor {
                 try {
                     //判断是否进入自我保护机制
                     if (selfProtectionPolicy.isSelfProtectionActivated()) {
-                        LOGGER.info("注册中心进入自我保护机制....");
+                        log.warn("注册中心进入自我保护机制....");
                         Thread.sleep(CHECK_ALIVE_INTERVAL);
                         continue;
                     }
-                    for (Entry<String, Map<String, ServiceInstance>> entry : registry.getFullRegistry().entrySet()) {
-                        LOGGER.info("==============>>>>>> {}", entry.getValue().size());
+                    Map<String, Map<String, ServiceInstance>> fullRegistry = registry.getFullRegistry();
+                    for (Entry<String, Map<String, ServiceInstance>> entry : fullRegistry.entrySet()) {
+                        log.info("服务:{},实例个数：>>>>>> {}", entry.getKey(), entry.getValue().size());
                         Map<String, ServiceInstance> instanceMap = entry.getValue();
                         for (Entry<String, ServiceInstance> instanceEntry : instanceMap.entrySet()) {
                             ServiceInstance instance = instanceEntry.getValue();
@@ -68,10 +69,9 @@ public class ServiceAliveMonitor {
                     }
                     Thread.sleep(CHECK_ALIVE_INTERVAL);
                 } catch (Exception e) {
-                    LOGGER.info("线程:[{}],被打断......", Thread.currentThread().getName());
+                    log.info("线程:[{}],被打断......", Thread.currentThread().getName());
                 }
             }
         }
     }
-
 }

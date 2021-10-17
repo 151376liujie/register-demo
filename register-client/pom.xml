@@ -1,54 +1,39 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns="http://maven.apache.org/POM/4.0.0"
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-  <modelVersion>4.0.0</modelVersion>
-
-  <parent>
-    <groupId>com.jonnyliu.proj.register</groupId>
-    <artifactId>register-demo</artifactId>
-    <version>1.0-SNAPSHOT</version>
-  </parent>
-
   <artifactId>register-client</artifactId>
-  <version>1.0-SNAPSHOT</version>
-
-  <name>register-client</name>
-  <url>http://www.example.com</url>
-
 
   <dependencies>
     <!-- https://mvnrepository.com/artifact/org.slf4j/slf4j-api -->
     <dependency>
-      <groupId>org.slf4j</groupId>
       <artifactId>slf4j-api</artifactId>
+      <groupId>org.slf4j</groupId>
     </dependency>
     <!-- https://mvnrepository.com/artifact/ch.qos.logback/logback-classic -->
     <dependency>
-      <groupId>ch.qos.logback</groupId>
       <artifactId>logback-classic</artifactId>
+      <groupId>ch.qos.logback</groupId>
     </dependency>
-    <!--    <dependency>-->
-    <!--      <groupId>software.amazon.awssdk</groupId>-->
-    <!--      <artifactId>efs</artifactId>-->
-    <!--      <version>2.16.23</version>-->
-    <!--    </dependency>-->
-    <!--    &lt;!&ndash; https://mvnrepository.com/artifact/com.amazonaws/aws-java-sdk-efs &ndash;&gt;-->
-    <!--    <dependency>-->
-    <!--      <groupId>com.amazonaws</groupId>-->
-    <!--      <artifactId>aws-java-sdk-efs</artifactId>-->
-    <!--      <version>1.11.939</version>-->
-    <!--    </dependency>-->
     <dependency>
-      <groupId>com.jonnyliu.proj.register</groupId>
       <artifactId>register-commons</artifactId>
+      <groupId>com.jonnyliu.proj.register</groupId>
       <version>1.0-SNAPSHOT</version>
     </dependency>
 
   </dependencies>
+  <modelVersion>4.0.0</modelVersion>
 
-  <build>
+  <name>register-client</name>
+  <parent>
+    <artifactId>register-demo</artifactId>
+    <groupId>com.jonnyliu.proj.register</groupId>
+    <version>1.0-SNAPSHOT</version>
+  </parent>
 
-  </build>
+
+  <url>http://www.example.com</url>
+
+  <version>1.0-SNAPSHOT</version>
 </project>

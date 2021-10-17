@@ -7,6 +7,7 @@ import com.jonnyliu.proj.register.commons.ServiceInstance;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -15,9 +16,9 @@ import org.slf4j.LoggerFactory;
  *
  * @author liujie
  */
-public class CachedServiceRegistry {
+public class ClientCachedServiceRegistry {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(CachedServiceRegistry.class);
+    private static final Logger log = LoggerFactory.getLogger(ClientCachedServiceRegistry.class);
 
     /**
      * 服务注册表拉取间隔时间
@@ -27,12 +28,12 @@ public class CachedServiceRegistry {
     /**
      * 客户端缓存的服务注册表
      */
-    private Map<String, Map<String, ServiceInstance>> registry = new HashMap<>();
+    private Map<String, Map<String, ServiceInstance>> registry = new ConcurrentHashMap<>();
 
     /**
      * 拉取增量注册表信息的线程
      */
-    private PullDeltaRegistryWorker deltaRegistryWorker;
+    private FetchDeltaRegistryWorker deltaRegistryWorker;
     /**
      * RegisterClient
      */
@@ -42,7 +43,7 @@ public class CachedServiceRegistry {
      */
     private HttpSender httpSender;
 
-    public CachedServiceRegistry(
+    public ClientCachedServiceRegistry(
             RegisterClient registerClient,
             HttpSender httpSender) {
         this.registerClient = registerClient;
@@ -53,10 +54,10 @@ public class CachedServiceRegistry {
      * 初始化
      */
     public void initialize() {
-        PullFullRegistryWorker fullRegistryWorker = new PullFullRegistryWorker();
+        FetchFullRegistryWorker fullRegistryWorker = new FetchFullRegistryWorker();
         fullRegistryWorker.setName("THREAD-FETCH-FULL-SERVICE-REGISTER");
         fullRegistryWorker.start();
-        this.deltaRegistryWorker = new PullDeltaRegistryWorker();
+        this.deltaRegistryWorker = new FetchDeltaRegistryWorker();
         this.deltaRegistryWorker.start();
     }
 
@@ -72,14 +73,16 @@ public class CachedServiceRegistry {
      *
      * @author liujie
      */
-    private class PullFullRegistryWorker extends Thread {
+    private class FetchFullRegistryWorker extends Thread {
 
         @Override
         public void run() {
             try {
-                registry = httpSender.fetchServiceRegistry();
+                if (registerClient.isRunning()) {
+                    registry = httpSender.fetchFullServiceRegistry();
+                }
             } catch (Exception e) {
-                LOGGER.error("error", e);
+                log.error("fetch full service registry error", e);
             }
         }
     }
@@ -89,7 +92,7 @@ public class CachedServiceRegistry {
      *
      * @author liujie
      */
-    private class PullDeltaRegistryWorker extends Thread {
+    private class FetchDeltaRegistryWorker extends Thread {
 
         @Override
         public void run() {
@@ -99,7 +102,7 @@ public class CachedServiceRegistry {
                     /**
                      * 最近变更的服务实例列表
                      */
-                    DeltaRegistry deltaRegistry = httpSender.fetchDeltaRegistry();
+                    DeltaRegistry deltaRegistry = httpSender.fetchDeltaServiceRegistry();
                     //增量注册表与本地缓存注册表合并
                     synchronized (registry) {
                         mergerDeltaRegistry(deltaRegistry.getRecentlyChangedServiceInstances());
@@ -110,10 +113,10 @@ public class CachedServiceRegistry {
                     Long clientSideServiceInstanceTotalCount = getClientSideServiceInstanceTotalCount();
                     //客户端和服务端的服务实例总个数不一致,则需要全量拉取
                     if (!serverSideServiceInstanceTotalCount.equals(clientSideServiceInstanceTotalCount)) {
-                        registry = httpSender.fetchServiceRegistry();
+                        registry = httpSender.fetchFullServiceRegistry();
                     }
                 } catch (Exception e) {
-                    LOGGER.error("error", e);
+                    log.error("error", e);
                 }
             }
         }
@@ -121,7 +124,7 @@ public class CachedServiceRegistry {
         /**
          * 获取客户端缓存的服务实例总数
          *
-         * @return
+         * @return 客户端缓存的服务实例总数
          */
         private Long getClientSideServiceInstanceTotalCount() {
             Long total = 0L;
@@ -134,7 +137,7 @@ public class CachedServiceRegistry {
         /**
          * 增量注册表与本地注册表
          *
-         * @param deltaRegistry
+         * @param recentlyChangedServiceInstances 最近有更新的服务实例列表
          */
         private void mergerDeltaRegistry(
                 LinkedList<RecentlyChangedServiceInstance> recentlyChangedServiceInstances) {
