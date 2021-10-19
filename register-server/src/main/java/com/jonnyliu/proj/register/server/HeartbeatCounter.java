@@ -1,6 +1,6 @@
 package com.jonnyliu.proj.register.server;
 
-import java.util.concurrent.atomic.LongAdder;
+import java.util.concurrent.atomic.AtomicLong;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -24,10 +24,10 @@ public class HeartbeatCounter {
     /**
      * 最近一分钟的心跳次数
      */
-    private LongAdder lastMinuteHeartbeatRate;
+    private AtomicLong lastMinuteHeartbeatRate;
 
     private HeartbeatCounter() {
-        this.lastMinuteHeartbeatRate = new LongAdder();
+        this.lastMinuteHeartbeatRate = new AtomicLong();
         this.lastMinuteTimestamp = System.currentTimeMillis();
         //开启一个后台线程
         Daemon daemon = new Daemon();
@@ -44,11 +44,9 @@ public class HeartbeatCounter {
      * 增加最近一分钟的心跳次数
      */
     public void increment() {
-        synchronized (HeartbeatCounter.class) {
-            long currentTimeMillis = System.currentTimeMillis();
-            if (currentTimeMillis - lastMinuteTimestamp < ONE_MINUTE) {
-                this.lastMinuteHeartbeatRate.increment();
-            }
+        long currentTimeMillis = System.currentTimeMillis();
+        if (currentTimeMillis - lastMinuteTimestamp < ONE_MINUTE) {
+            this.lastMinuteHeartbeatRate.incrementAndGet();
         }
     }
 
@@ -58,9 +56,7 @@ public class HeartbeatCounter {
      * @return 最近一分钟的心跳次数
      */
     public long getLastMinuteHeartbeatRate() {
-        synchronized (HeartbeatCounter.class) {
-            return this.lastMinuteHeartbeatRate.longValue();
-        }
+        return this.lastMinuteHeartbeatRate.get();
     }
 
     private class Daemon extends Thread {
@@ -68,13 +64,16 @@ public class HeartbeatCounter {
         @Override
         public void run() {
             while (true) {
-                synchronized (HeartbeatCounter.class) {
-                    long currentTimeMillis = System.currentTimeMillis();
-                    if (currentTimeMillis - lastMinuteTimestamp > ONE_MINUTE) {
-                        log.info("超过一分钟，清空心跳次数");
-                        lastMinuteHeartbeatRate = new LongAdder();
-                        lastMinuteTimestamp = System.currentTimeMillis();
+                long currentTimeMillis = System.currentTimeMillis();
+                if (currentTimeMillis - lastMinuteTimestamp > ONE_MINUTE) {
+                    log.info("超过一分钟，清空心跳次数");
+                    while (true) {
+                        long expected = lastMinuteHeartbeatRate.get();
+                        if (lastMinuteHeartbeatRate.compareAndSet(expected, 0L)) {
+                            break;
+                        }
                     }
+                    lastMinuteTimestamp = System.currentTimeMillis();
                 }
                 try {
                     Thread.sleep(1000);

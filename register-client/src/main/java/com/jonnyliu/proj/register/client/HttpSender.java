@@ -1,5 +1,7 @@
 package com.jonnyliu.proj.register.client;
 
+import com.jonnyliu.proj.register.commons.Applications;
+import com.jonnyliu.proj.register.commons.ChangedType;
 import com.jonnyliu.proj.register.commons.DeltaRegistry;
 import com.jonnyliu.proj.register.commons.HeartbeatRequest;
 import com.jonnyliu.proj.register.commons.HeartbeatResponse;
@@ -61,7 +63,7 @@ public class HttpSender {
      *
      * @return 全量注册表信息
      */
-    public Map<String, Map<String, ServiceInstance>> fetchFullServiceRegistry() {
+    public Applications fetchFullServiceRegistry() {
         Map<String, Map<String, ServiceInstance>> registry =
                 new ConcurrentHashMap<>();
 
@@ -79,7 +81,7 @@ public class HttpSender {
 
         log.info("拉取全量注册表：{}", registry);
 
-        return registry;
+        return new Applications(registry);
     }
 
     /**
@@ -100,7 +102,7 @@ public class HttpSender {
 
         RecentlyChangedServiceInstance recentlyChangedItem = new RecentlyChangedServiceInstance(
                 serviceInstance,
-                "register");
+                ChangedType.REGISTER);
 
         recentlyChangedQueue.add(recentlyChangedItem);
 

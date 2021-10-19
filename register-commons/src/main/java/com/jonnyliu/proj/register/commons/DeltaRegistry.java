@@ -12,11 +12,11 @@ public class DeltaRegistry {
     /**
      * 最近变更的服务实例队列
      */
-    private LinkedList<RecentlyChangedServiceInstance> recentlyChangedServiceInstances;
+    private final LinkedList<RecentlyChangedServiceInstance> recentlyChangedServiceInstances;
     /**
      * 服务端的实例总数,用于纠正客户端缓存的注册信息
      */
-    private Long serviceInstanceTotalCount;
+    private final Long serviceInstanceTotalCount;
 
     public DeltaRegistry(
             LinkedList<RecentlyChangedServiceInstance> recentlyChangedServiceInstances,

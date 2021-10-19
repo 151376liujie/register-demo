@@ -17,13 +17,13 @@ public class ServiceAliveMonitor {
     private static final Logger log = LoggerFactory.getLogger(ServiceAliveMonitor.class);
 
     private static final long CHECK_ALIVE_INTERVAL = 60 * 1000;
+    private static final String THREAD_SERVICE_ALIVE_MONITOR = "THREAD-SERVICE-ALIVE-MONITOR";
 
     private final Daemon daemon;
 
     public ServiceAliveMonitor() {
-        this.daemon = new Daemon();
+        this.daemon = new Daemon(THREAD_SERVICE_ALIVE_MONITOR);
         this.daemon.setDaemon(true);
-        this.daemon.setName("THREAD-SERVICE-ALIVE-MONITOR");
     }
 
     public void start() {
@@ -36,6 +36,11 @@ public class ServiceAliveMonitor {
     private class Daemon extends Thread {
 
         private final ServiceRegistry registry = ServiceRegistry.getInstance();
+
+
+        public Daemon(String name) {
+            super(name);
+        }
 
         @Override
         public void run() {

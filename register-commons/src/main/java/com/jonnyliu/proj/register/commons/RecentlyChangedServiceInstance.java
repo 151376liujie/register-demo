@@ -12,17 +12,17 @@ public class RecentlyChangedServiceInstance {
     /**
      * 服务实例
      */
-    private ServiceInstance serviceInstance;
+    private final ServiceInstance serviceInstance;
 
     /**
      * 发生变更的时间戳
      */
-    private Long changedTimestamp;
+    private final Long changedTimestamp;
 
     /**
      * 变更类型
      */
-    private String changedType;
+    private final String changedType;
 
     public RecentlyChangedServiceInstance(ServiceInstance serviceInstance, String changedType) {
         this.changedTimestamp = System.currentTimeMillis();

@@ -19,8 +19,9 @@ public class ServiceRegistry {
 
     private static final Logger log = LoggerFactory.getLogger(ServiceRegistry.class);
 
-    public static final Long RECENTLY_CHANGED_ITEM_CHECK_INTERVAL = 3000L;
+    public static final Long RECENTLY_CHANGED_ITEM_CHECK_INTERVAL = 3 * 1000L;
     public static final Long RECENTLY_CHANGED_ITEM_EXPIRED = 3 * 60 * 1000L;
+    private static final String RECENTLY_CHANGED_SERVICE_INSTANCE_MONITOR = "RECENTLY_CHANGED_SERVICE_INSTANCE_MONITOR";
 
 
     /**
@@ -34,8 +35,7 @@ public class ServiceRegistry {
     /**
      * 最近变更的服务实例的队列
      */
-    private LinkedList<RecentlyChangedServiceInstance> recentlyChangedQueue =
-            new LinkedList<>();
+    private LinkedList<RecentlyChangedServiceInstance> recentlyChangedQueue = new LinkedList<>();
 
     /**
      * 注册表是个单例
@@ -44,9 +44,10 @@ public class ServiceRegistry {
 
     private ServiceRegistry() {
         //启动后台线程监控最近变更的队列
-        RecentlyChangedQueueMonitor recentlyChangedQueueMonitor = new RecentlyChangedQueueMonitor();
+        RecentlyChangedQueueMonitor recentlyChangedQueueMonitor = new RecentlyChangedQueueMonitor(
+                RECENTLY_CHANGED_SERVICE_INSTANCE_MONITOR);
         recentlyChangedQueueMonitor.setDaemon(true);
-//        recentlyChangedQueueMonitor.start();
+        recentlyChangedQueueMonitor.start();
     }
 
     public static ServiceRegistry getInstance() {
@@ -150,6 +151,10 @@ public class ServiceRegistry {
      */
     class RecentlyChangedQueueMonitor extends Thread {
 
+        public RecentlyChangedQueueMonitor(String name) {
+            super(name);
+        }
+
         @Override
         public void run() {
             while (true) {
@@ -163,6 +168,8 @@ public class ServiceRegistry {
                             if (currentTimestamp - recentlyChangedItem.getChangedTimestamp()
                                     > RECENTLY_CHANGED_ITEM_EXPIRED) {
                                 recentlyChangedQueue.pop();
+                            } else {
+                                break;
                             }
                         }
                     }
